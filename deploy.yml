@@ -1,4 +1,5 @@
 ---
+
 - hosts: webservers
   become: yes
 
@@ -26,8 +27,15 @@
       dest: /home/ubuntu/app/
 
   - name: Install dependencies
+    shell: npm install
+    args:
+      chdir: /home/ubuntu/app
 
-    - hosts: loadbalancer
+  - name: Start application
+    shell: nohup node /home/ubuntu/app/index.js &
+
+
+- hosts: loadbalancer
   become: yes
 
   tasks:
@@ -43,7 +51,7 @@
       dest: /etc/nginx/sites-available/default
       content: |
         upstream backend {
-            server 44.212.29.217:5000;
+            server 172.31.94.42:5000;
             server 3.89.202.253:5000;
         }
 
@@ -59,5 +67,3 @@
     systemd:
       name: nginx
       state: restarted
-
-
