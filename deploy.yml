@@ -1,0 +1,35 @@
+---
+- hosts: webservers
+  become: yes
+
+  tasks:
+
+  - name: Update apt
+    apt:
+      update_cache: yes
+
+  - name: Install NodeJS
+    apt:
+      name:
+        - nodejs
+        - npm
+      state: present
+
+  - name: Create app directory
+    file:
+      path: /home/ubuntu/app
+      state: directory
+
+  - name: Copy app files
+    copy:
+      src: app/
+      dest: /home/ubuntu/app/
+
+  - name: Install dependencies
+    npm:
+      path: /home/ubuntu/app
+
+  - name: Start application
+    shell: |
+      nohup node /home/ubuntu/app/index.js &
+

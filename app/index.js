@@ -1,0 +1,9 @@
+const http = require('http');
+
+const server = http.createServer((req,res)=>{
+res.write("Hello from Saurav  CI/CD Project");
+res.end();
+});
+
+server.listen(5000);
+
