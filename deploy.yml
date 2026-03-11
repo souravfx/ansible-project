@@ -43,8 +43,8 @@
       dest: /etc/nginx/sites-available/default
       content: |
         upstream backend {
-            server APP_SERVER_IP1:5000;
-            server APP_SERVER_IP2:5000;
+            server 44.212.29.217:5000;
+            server 3.89.202.253:5000;
         }
 
         server {
