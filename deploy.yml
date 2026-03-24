@@ -51,8 +51,8 @@
       dest: /etc/nginx/sites-available/default
       content: |
         upstream backend {
-            server 172.31.94.42:5000;
-            server 3.89.202.253:5000;
+            server 10.0.0.148:5000;
+            server 10.0.0.143:5000;
         }
 
         server {
