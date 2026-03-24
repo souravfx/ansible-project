@@ -1,69 +1,90 @@
 ---
-
 - hosts: webservers
   become: yes
 
   tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
-  - name: Update apt
-    apt:
-      update_cache: yes
+    - name: Install NodeJS and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
 
-  - name: Install NodeJS
-    apt:
-      name:
-        - nodejs
-        - npm
-      state: present
+    - name: Create app directory
+      file:
+        path: /home/ubuntu/app
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
 
-  - name: Create app directory
-    file:
-      path: /home/ubuntu/app
-      state: directory
+    - name: Copy application files
+      copy:
+        src: app/
+        dest: /home/ubuntu/app/
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
 
-  - name: Copy app files
-    copy:
-      src: app/
-      dest: /home/ubuntu/app/
+    - name: Install NodeJS dependencies
+      shell: npm install
+      args:
+        chdir: /home/ubuntu/app
 
-  - name: Install dependencies
-    shell: npm install
-    args:
-      chdir: /home/ubuntu/app
-
-  - name: Start application
-    shell: nohup node /home/ubuntu/app/index.js &
+    - name: Start NodeJS application
+      shell: |
+        pkill node || true
+        nohup node index.js > app.log 2>&1 &
+      args:
+        chdir: /home/ubuntu/app
 
 
 - hosts: loadbalancer
   become: yes
 
   tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
-  - name: Install nginx
-    apt:
-      name: nginx
-      state: present
-      update_cache: yes
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
 
-  - name: Configure nginx load balancer
-  copy:
-    dest: /etc/nginx/sites-available/default
-    content: |
-      upstream backend {
-          server 10.0.0.148:5000;
-          server 10.0.1.253:5000;
-      }
-
-      server {
-          listen 80;
-
-          location / {
-              proxy_pass http://backend; 
+    - name: Configure nginx load balancer
+      copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          upstream backend {
+              server 10.0.0.148:5000;
+              server 10.0.1.253:5000;
           }
-      }
 
-  - name: Restart nginx
-    systemd:
-      name: nginx
-      state: restarted
+          server {
+              listen 80;
+
+              location / {
+                  proxy_pass http://backend;
+              }
+          }
+
+    - name: Test nginx configuration
+      command: nginx -t
+      register: nginx_test
+      ignore_errors: yes
+
+    - name: Fail if nginx config is invalid
+      fail:
+        msg: "Nginx configuration is invalid: {{ nginx_test.stderr }}"
+      when: nginx_test.rc != 0
+
+    - name: Restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
