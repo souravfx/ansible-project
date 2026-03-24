@@ -59,7 +59,7 @@
             listen 80;
 
             location / {
-        try_files $uri $uri/ =404;
+        proxy_pass http://backend; 
             }
         }
 
