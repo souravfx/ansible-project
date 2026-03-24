@@ -55,7 +55,7 @@
             server 10.0.1.253:5000;
         }
 
-        server {:
+        server {
             listen 80;
 
        location / {
