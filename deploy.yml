@@ -52,7 +52,7 @@
       content: |
         upstream backend {
             server 10.0.0.148:5000;
-            server 10.0.0.143:5000;
+            server 10.0.1.253:5000;
         }
 
         server {
